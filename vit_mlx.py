@@ -13,6 +13,8 @@ from mlx import nn
 
 """
 class PatchEmbed():
+    def __init__(self, patch_size=4, embed_dim=128, in_channels=3, image_size=32):
+        super().__init__()
         self.patch_size = patch_size 
         self.embed_dim = embed_dim 
         self.image_size = image_size 
