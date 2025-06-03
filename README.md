@@ -1,6 +1,8 @@
 # Benchmarking ViT on Apple MLX vs. Nvidia GPU vs. Intel CPU
 
 ## Purpose 
+This project aims at comparing the training and inference performance of a sophisticated Vision Transformer (ViT) model across three distinct hardware architectures: Apple M-series (utilizing Metal via MLX), NVIDIA GPU (RTX series with CUDA-enabled PyTorch/TensorFlow), and Intel CPU (with PyTorch/TensorFlow). The primary objective is to rigorously assess how each hardware platform handles ViT training and inference, with a particular focus on performance when optimized using their respective native frameworks and acceleration techniques.
+
 
 ## Model Selection 
 
