@@ -8,7 +8,7 @@ I wanted to choose a model which was sophisticated, performs well on it's intend
 
 ## Dataset 
 
-I've selected [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)! to train each of the architectures. It consists of 100 classess with 600 images each. These images are originally sized at 32x32 so I'll need to scale them to conform to the 224x224 shape DeiT-small ViT expects. 
+I've selected [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) to train each of the architectures. It consists of 100 classess with 600 images each. These images are originally sized at 32x32 so I'll need to scale them to conform to the 224x224 shape DeiT-small ViT expects. 
 
 ## Hardware and Frameworks 
 
@@ -22,11 +22,11 @@ A mid tier RTX 30/40 series card will be used to assess consumer Nvidia performa
 A recent multicore Intel CPU wil be used to assess consumer Intel performance. PyTorch will be used here with Intel's extensions for CPU acceleration. 
 
 #### A Note on OS 
-Obviously the OS can't be kept consistent for each device without serious effort. As a result, MacOS will be run for Apple Silicon and Linux will be used for Nvidia and Intel. 
+*Obviously the OS can't be kept consistent for each device without serious effort. As a result, MacOS will be run for Apple Silicon and Linux will be used for Nvidia and Intel.*
 
 ## Performance Metrics
 
-These metrics follow ML benchmarking guidance such as (DAWNBench)[https://www.google.com/search?client=safari&rls=en&q=DAWNBench&ie=UTF-8&oe=UTF-8]!. In addition to throughput and inference speed markers. 
+These metrics follow ML benchmarking guidance such as [DAWNBench](https://www.google.com/search?client=safari&rls=en&q=DAWNBench&ie=UTF-8&oe=UTF-8). In addition to throughput and inference speed markers. 
 
 ### Training Throughput 
 Number of training samples processed per second (averaged over full training period). Generally the higher the better (training should be completed faster). 
