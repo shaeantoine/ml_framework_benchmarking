@@ -21,8 +21,7 @@ A mid tier RTX 30/40 series card will be used to assess consumer Nvidia performa
 ### Intel CPU - PyTorch
 A recent multicore Intel CPU wil be used to assess consumer Intel performance. PyTorch will be used here with Intel's extensions for CPU acceleration. 
 
-#### A Note on OS 
-*Obviously the OS can't be kept consistent for each device without serious effort. As a result, MacOS will be run for Apple Silicon and Linux will be used for Nvidia and Intel.*
+**A Note on OS:** *Obviously the OS can't be kept consistent for each device without serious effort. As a result, MacOS will be run for Apple Silicon and Linux will be used for Nvidia and Intel.*
 
 ## Performance Metrics
 
@@ -48,3 +47,22 @@ Eletrcial power draw (in Watts) during training.
 
 
 ## Methodology
+
+### Batch Sizes and Workloads
+I'll first test to see the largest batch that fits within the device's memory (maximum feasible batch). But I'll be primarily reporting results from a common reference batch (i.e. 32). 
+
+I'll also be measuring latency at inference time with a batch size of 1. 
+
+### Training Procedure 
+I'll be using an identical model, optimizer and data pipeline implemented in each framework. I'll also be running either for a fixed number of epochs or until I hit a convergence threshold.
+
+#### Metrics Measurement during Training
+I'll be measuring throughput with average number of images processed per time incremement. I'll measure time-to-convergence by measuring how many seconds/ epochs each platform takes to reach a convergence threshold. I'll be monitoring memory usage through different tools on each platform and power measurement also through OS specific tools.
+
+### Inference Procedure
+
+#### Latency vs Throughput
+I'll be measuring time to run a single forward pass (with batch=1) on new inputs. While also measuring the number of images/sec for larger batched.
+
+### Replication and Consistency 
+I'll run training and inference on each hardware multiple times to reduce variability. However, the inevitable variance in OS and potential difference in implementation could invite confounding variables. 
