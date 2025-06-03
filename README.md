@@ -25,3 +25,26 @@ A recent multicore Intel CPU wil be used to assess consumer Intel performance. P
 Obviously the OS can't be kept consistent for each device without serious effort. As a result, MacOS will be run for Apple Silicon and Linux will be used for Nvidia and Intel. 
 
 ## Performance Metrics
+
+These metrics follow ML benchmarking guidance such as (DAWNBench)[https://www.google.com/search?client=safari&rls=en&q=DAWNBench&ie=UTF-8&oe=UTF-8]!. In addition to throughput and inference speed markers. 
+
+### Training Throughput 
+Number of training samples processed per second (averaged over full training period). Generally the higher the better (training should be completed faster). 
+
+### Inference Latency
+Time per image (ms) for a forward pass. This correlates to deployment performance. I'll report the median and 90th percentile of a single-image. 
+
+### Peak Memory Usage
+Maximum device memory used during training (in GB). 
+
+### Time-to-convergence
+Time to reach a target validation accuracy. 
+
+### Cost per training run 
+This is specifically for cloud costs, I'll be tracking total cost for training. 
+
+### Power Consumption 
+Eletrcial power draw (in Watts) during training. 
+
+
+## Methodology
