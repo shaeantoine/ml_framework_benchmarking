@@ -1,7 +1,7 @@
 import math
-import mlx.core as mx
+import numpy as np
 from mlx import nn
-
+import mlx.core as mx
 
 """
 
