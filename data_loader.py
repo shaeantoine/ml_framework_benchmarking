@@ -53,3 +53,18 @@ def make_batches(data, labels, batch_size, shuffle=True):
         batch_x = mx.array(data[batch_idx])  # shape [B, 3, 32, 32]
         batch_y = mx.array(labels[batch_idx])  # shape [B]
         yield batch_x, batch_y
+
+
+if __name__ == "__main__":
+    download_cifar100() 
+
+    train_data, train_labels = load_cifar100("train")
+    test_data, test_labels = load_cifar100("test")
+
+    print("Train data:", train_data.shape)
+    print("Train labels:", train_labels.shape)
+
+    # Example: loop over one epoch
+    for batch_x, batch_y in make_batches(train_data, train_labels, batch_size=64):
+        print("Batch:", batch_x.shape, batch_y.shape)
+        break
