@@ -1,9 +1,9 @@
 import numpy as np
 import mlx.nn as nn
 import mlx.core as mx
-from utils import accuracy, save_checkpoint
 from utils import CSVLogger
-from models.vit_mlx import DeiTSmall
+from models.vit_mlx import ViT
+from eval import accuracy, save_checkpoint
 from data.data_loader import download_cifar100, load_cifar100, make_batches
 
 def train(model, optimizer, loss_fn, train_data, train_labels, batch_size=64, epochs=10):
@@ -42,11 +42,15 @@ def train(model, optimizer, loss_fn, train_data, train_labels, batch_size=64, ep
 
 if __name__ == "__main__":
     download_cifar100()
+
+    print("Splitting the dataset")
     train_x, train_y = load_cifar100("train")
     test_x, test_y = load_cifar100("test")
 
-    model = DeiTSmall(num_classes=100)
+    print("Initializing ViT")
+    model = ViT(num_classes=100)
     loss_fn = nn.CrossEntropyLoss()
     optimizer = nn.Adam(model.parameters(), lr=3e-4)
 
+    print("Beginning the training loop")
     train(model, optimizer, loss_fn, train_x, train_y)
