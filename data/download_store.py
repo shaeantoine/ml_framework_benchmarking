@@ -35,18 +35,52 @@ def load_raw(split):
     with open(file, "rb") as fo: 
         data = pickle.load(fo, encoding="bytes")
 
-    print(f"All of the keys in the dictionary: {data.keys()}")
-    print(data[b'data'])
+    images = data[b"data"].reshape(-1, 3, 32, 32).astype(np.float32) / 255.0
+    labels = np.array(data[b"coarse_labels"], dtype=np.int32)
 
-    #images = data["data"].reshape(-1, 3, 32, 32).astype(np.float32) / 255.0
-    #labels = np.array(data["fine_labels"], dtype=np.int32)
+    return images, labels
 
-    #return images, labels
+def resize(images, labels, split, size=(224,224)):
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    cache_img_path = CACHE_DIR / f"{split}_images_{size[0]}x{size[1]}.npy"
+    cache_lbl_path = CACHE_DIR / f"{split}_labels.npy"
 
+    if cache_img_path.exists() and cache_lbl_path.exists():
+        print(f"🔄 Using cached {split} data...")
+        return np.load(cache_img_path), np.load(cache_lbl_path)
+
+    print(f"📐 Resizing {split} images to {size}...")
+    resized = []
+    for i, img in enumerate(images):
+        img = np.transpose(img, (1, 2, 0))  # (32, 32, 3)
+        pil_img = Image.fromarray((img * 255).astype(np.uint8))
+        pil_img = pil_img.resize(size, Image.BICUBIC)
+        resized_img = np.array(pil_img).astype(np.float32) / 255.0
+        resized_img = np.transpose(resized_img, (2, 0, 1))  # (3, H, W)
+        resized.append(resized_img)
+
+        if (i + 1) % 5000 == 0:
+            print(f"  → {i + 1}/{len(images)} done")
+
+    resized = np.stack(resized)
+    np.save(cache_img_path, resized)
+    np.save(cache_lbl_path, labels)
+    print(f"✅ Saved {split} set to {cache_img_path}")
+    return resized, labels
+
+
+def cache(): 
+    return
 
 if __name__ == "__main__":
     print("Downloading...")
     download_cifar100()
 
     print("Loading raw data...")
-    load_raw("train")
+    images, labels = load_raw("train")
+
+    print("Resizing raw data...")
+    resize(data)
+
+    print("Caching processed data...")
+    cache(data)
