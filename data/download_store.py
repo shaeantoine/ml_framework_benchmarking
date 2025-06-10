@@ -27,7 +27,6 @@ def download_cifar100():
 
     print("Done.")
 
-
 # Load raw dataset
 def load_raw(split):
     file = RAW_DIR / "cifar-100-python" / f"{split}"
@@ -40,6 +39,19 @@ def load_raw(split):
 
     return images, labels
 
+# Splitting dataset into batches
+def batching(images, labels, batch_size=128, shuffle=True): 
+    indicies = np.arange(len(images))
+    if shuffle: 
+        np.random.shuffle(indicies)
+
+    for start_idx in range(0, len(images), batch_size):
+        end_idx = start_idx + batch_size
+        batch_idx = indicies[start_idx:end_idx]
+        yield images[batch_idx], labels[batch_idx]
+       
+
+# Resizing dataset
 def resize(images, labels, split, size=(224,224)):
     os.makedirs(CACHE_DIR, exist_ok=True)
     cache_img_path = CACHE_DIR / f"{split}_images_{size[0]}x{size[1]}.npy"
@@ -49,7 +61,7 @@ def resize(images, labels, split, size=(224,224)):
         print(f"🔄 Using cached {split} data...")
         return np.load(cache_img_path), np.load(cache_lbl_path)
 
-    print(f"📐 Resizing {split} images to {size}...")
+    print(f"Resizing {split} images to {size}...")
     resized = []
     for i, img in enumerate(images):
         img = np.transpose(img, (1, 2, 0))  # (32, 32, 3)
@@ -60,7 +72,7 @@ def resize(images, labels, split, size=(224,224)):
         resized.append(resized_img)
 
         if (i + 1) % 5000 == 0:
-            print(f"  → {i + 1}/{len(images)} done")
+            print(f"{i + 1}/{len(images)} done")
 
     resized = np.stack(resized)
     np.save(cache_img_path, resized)
@@ -68,9 +80,6 @@ def resize(images, labels, split, size=(224,224)):
     print(f"✅ Saved {split} set to {cache_img_path}")
     return resized, labels
 
-
-def cache(): 
-    return
 
 if __name__ == "__main__":
     print("Downloading...")
@@ -80,7 +89,4 @@ if __name__ == "__main__":
     images, labels = load_raw("train")
 
     print("Resizing raw data...")
-    resize(data)
-
-    print("Caching processed data...")
-    cache(data)
+    #resize(images, labels, "train")
