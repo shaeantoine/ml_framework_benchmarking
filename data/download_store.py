@@ -70,11 +70,25 @@ def resize(batches, split, size=(224, 224)): # Ingest a list of batches (image_b
 
         # Placing resized images back into batch array 
         resized_images_array = np.stack(resized_images_list)
-        batch_data_to_save = (resized_images_array, labels_batch)
-        np.save(cache_batch_file_path, batch_data_to_save)
+        processed_labels_batch = np.asarray(labels_batch)
+
+        # --- NEW DIAGNOSTIC PRINTS ---
+        print(f"\n--- Debugging Batch {i} ---")
+        print(f"Type of resized_images_array: {type(resized_images_array)}")
+        print(f"Shape of resized_images_array: {resized_images_array.shape}")
+        print(f"Dtype of resized_images_array: {resized_images_array.dtype}")
+        print(f"Type of processed_labels_batch: {type(processed_labels_batch)}")
+        print(f"Shape of processed_labels_batch: {processed_labels_batch.shape}")
+        print(f"Dtype of processed_labels_batch: {processed_labels_batch.dtype}")
+
+        np.savez_compressed(
+            cache_batch_file_path,
+            images=resized_images_array,
+            labels=processed_labels_batch
+        )
 
         print(f"Saved {split} set to {cache_batch_file_path}")
-        
+
 
 if __name__ == "__main__":
     print("Downloading...")
