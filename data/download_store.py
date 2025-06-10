@@ -81,6 +81,7 @@ def resize(batches, split, size=(224, 224)): # Ingest a list of batches (image_b
         print(f"Shape of processed_labels_batch: {processed_labels_batch.shape}")
         print(f"Dtype of processed_labels_batch: {processed_labels_batch.dtype}")
 
+        # Saving to a compressed npy object
         np.savez_compressed(
             cache_batch_file_path,
             images=resized_images_array,
