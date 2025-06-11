@@ -195,3 +195,4 @@ cython_debug/
 .cursorindexingignore
 
 .DS_store
+/data/raw
