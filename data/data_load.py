@@ -1,19 +1,18 @@
 import os
+import torch
 import numpy as np
 from glob import glob
-
-# Optional imports
 import mlx.core as mx
-import torch
-from torch.utils.data import Dataset, DataLoader
 import tensorflow as tf
+from torch.utils.data import Dataset, DataLoader
+
 
 class DiskCachedDataset:
-    def __init__(self, split="train", size=(224, 224), cache_dir="cache", shuffle=True):
+    def __init__(self, split="train", size=(224, 224), cache_dir="cache", shuffle=False):
         self.cache_dir = cache_dir
         pattern = os.path.join(cache_dir, f"{split}_batch_*_{size[0]}x{size[1]}.npz")
         self.batch_files = sorted(glob(pattern))
-        self.shuffle = shuffle
+        self.shuffle = shuffle # Default shuffle=False as I don't think this is helpful
         if shuffle:
             np.random.shuffle(self.batch_files)
 
@@ -29,14 +28,12 @@ class DiskCachedDataset:
             data = np.load(path)
             yield data["images"], data["labels"]
 
-    # --- MLX Generator ---
+    # MLX Support
     def as_mlx(self):
-        def generator():
-            for x, y in self:
-                yield mx.array(x), mx.array(y)
-        return generator
+        for images, labels in self._load_batches():
+            yield mx.array(images), mx.array(labels)
 
-    # --- PyTorch Dataset ---
+    # PyTorch Support
     class TorchDiskDataset(Dataset):
         def __init__(self, batch_files):
             self.batch_files = batch_files
@@ -54,7 +51,7 @@ class DiskCachedDataset:
         dataset = self.TorchDiskDataset(self.batch_files)
         return DataLoader(dataset, batch_size=None, shuffle=shuffle, num_workers=num_workers)
 
-    # --- TensorFlow Dataset ---
+    # TensorFlow Support
     def as_tf(self):
         def generator():
             for x, y in self:
@@ -71,3 +68,11 @@ class DiskCachedDataset:
                 tf.TensorSpec(shape=y_shape, dtype=tf.int32)
             )
         )
+
+
+if __name__ == "__main__": 
+    cache_ds = DiskCachedDataset(split="train", size=(224, 224), cache_dir="data/processed", shuffle=False)
+
+    print("about to start loop")
+    for x_batch, y_batch in cache_ds.as_mlx()(): 
+        pass
