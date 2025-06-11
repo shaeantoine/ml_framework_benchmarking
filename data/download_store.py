@@ -4,7 +4,6 @@ import tarfile
 import numpy as np
 from PIL import Image
 import urllib.request
-import mlx.core as mx
 from pathlib import Path
 
 CIFAR_URL = "https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz"
@@ -103,5 +102,3 @@ if __name__ == "__main__":
 
     print("Resizing raw batches...")
     resize(batches, split="train")
-
-
