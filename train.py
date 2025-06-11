@@ -2,7 +2,7 @@ import numpy as np
 import mlx.nn as nn
 import mlx.core as mx
 from utils import CSVLogger
-from models.vit_mlx import ViT
+from models.vit_mlx import ViT_MLX
 from eval import accuracy, save_checkpoint
 from data.data_loader import download_cifar100, load_cifar100, make_batches
 
