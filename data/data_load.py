@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class DiskCachedDataset:
-    def __init__(self, split="train", size=(224, 224), cache_dir="cache", shuffle=False):
+    def __init__(self, split="train", size=(224, 224), cache_dir="data/processed", shuffle=False):
         self.cache_dir = cache_dir
         pattern = os.path.join(cache_dir, f"{split}_batch_*_{size[0]}x{size[1]}.npz")
         self.batch_files = sorted(glob(pattern))
@@ -74,10 +74,3 @@ class DiskCachedDataset:
             )
         )
     
-
-if __name__ == "__main__": 
-    data = DiskCachedDataset(cache_dir="data/processed")
-
-    for i, (image_batch, label_batch) in enumerate(data.as_mlx()): 
-        print(f"\n --- Batch {i} Label Data --- ")
-        print(image_batch)
