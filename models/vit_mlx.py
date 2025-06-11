@@ -94,15 +94,15 @@ class ViT_MLX(nn.Module):
         token_count = num_patches + 1 + int(use_distill_token)
 
         # Class and distinalltion token
-        self.cls_token = nn.Parameter(mx.random.normal(shape=(1, 1, embed_dim)))
+        self.cls_token = mx.random.normal(shape=(1, 1, embed_dim))
         self.use_distill_token = use_distill_token
         if use_distill_token:
-            self.dist_token = nn.Parameter(mx.random.normal(shape=(1, 1, embed_dim)))
+            self.dist_token = mx.random.normal(shape=(1, 1, embed_dim))
         else:
             self.dist_token = None
 
         # Positional embedding
-        self.pos_embed = nn.Parameter(mx.random.normal(shape=(1, token_count, embed_dim)))
+        self.pos_embed = mx.random.normal(shape=(1, token_count, embed_dim))
         self.dropout = nn.Dropout(dropout)
 
         self.blocks = nn.Sequential(

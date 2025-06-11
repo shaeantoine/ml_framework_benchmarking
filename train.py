@@ -1,56 +1,73 @@
-import numpy as np
+import os
+import time
 import mlx.nn as nn
 import mlx.core as mx
-from utils import CSVLogger
 from models.vit_mlx import ViT_MLX
-from eval import accuracy, save_checkpoint
-from data.data_loader import download_cifar100, load_cifar100, make_batches
+from mlx.optimizers import Adam
+#from nn.Module import save_weights
+from data.data_load import DiskCachedDataset
 
-def train(model, optimizer, loss_fn, train_data, train_labels, batch_size=64, epochs=10):
-    logger = CSVLogger("training_log.csv")
-    best_acc = 0.0
+# Training Config
+num_classes = 20
+image_size = 224
+patch_size = 16
+batch_size = 128
+num_epochs = 10
+lr = 3e-4
 
-    for epoch in range(epochs):
-        losses, accs = [], []
-        for x, y in make_batches(train_data, train_labels, batch_size):
-            def loss_fn_closure():
-                logits = model(x)
-                loss = loss_fn(logits, y)
-                return loss, logits
+# Load Dataset 
+train_dataset = DiskCachedDataset(split="train", size=(image_size, image_size))
+train_loader = train_dataset.as_mlx()
 
-            (loss, logits), grads = mx.grad(loss_fn_closure, model.parameters())
-            optimizer.update(model.parameters(), grads)
+# Instantiate Model 
+model = ViT_MLX(
+    img_size=image_size,
+    patch_size=patch_size,
+    num_classes=num_classes,
+    embed_dim=384,
+    depth=12,
+    num_heads=6,
+    mlp_ratio=4.0,
+    dropout=0.1
+)
 
-            acc = accuracy(logits, y)
-            losses.append(loss.item())
-            accs.append(acc)
+# Optimizer 
+params = model.parameters()
+optimizer = Adam(learning_rate=lr)
 
-        avg_loss = np.mean(losses)
-        avg_acc = np.mean(accs)
-        print(f"[Epoch {epoch+1}] Loss: {avg_loss:.4f}  Accuracy: {avg_acc*100:.2f}%")
+# Loss Function
+def compute_loss_and_grads(model, images, labels):
+    def loss_fn(params):
+        model.update(params)
+        logits = model(images)
+        loss = nn.losses.cross_entropy(logits, labels)
+        return loss, logits
+    (loss, logits), grads = mx.value_and_grad(loss_fn, has_aux=True)(model.parameters())
+    return loss, logits, grads
 
-        logger.log(epoch + 1, avg_loss, avg_acc)
+# Training Loop
+for epoch in range(num_epochs):
+    total_loss = 0
+    num_batches = 0
+    correct = 0
+    total = 0
 
-        # Save best checkpoint
-        if avg_acc > best_acc:
-            best_acc = avg_acc
-            save_checkpoint(model, name="best_model.npz")
+    start_time = time.time()
 
-        # Save periodic checkpoint
-        if (epoch + 1) % 5 == 0:
-            save_checkpoint(model, name=f"model_epoch{epoch+1}.npz")
+    for images, labels in train_loader:
+        loss, logits, grads = compute_loss_and_grads(model, images, labels)
+        params = optimizer.update(params, grads) 
 
-if __name__ == "__main__":
-    download_cifar100()
+        total_loss += loss.item()
+        num_batches += 1
 
-    print("Splitting the dataset")
-    train_x, train_y = load_cifar100("train")
-    test_x, test_y = load_cifar100("test")
+        preds = mx.argmax(logits, axis=-1)
+        correct += mx.sum(preds == labels).item()
+        total += labels.size
 
-    print("Initializing ViT")
-    model = ViT(num_classes=100)
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = nn.Adam(model.parameters(), lr=3e-4)
+    avg_loss = total_loss / num_batches
+    acc = correct / total
+    
+    nn.save_weights(f"checkpoints/vit_epoch_{epoch+1}.safetensors", params)
 
-    print("Beginning the training loop")
-    train(model, optimizer, loss_fn, train_x, train_y)
+    print(f"[Epoch {epoch+1}] Loss: {avg_loss:.4f} | Accuracy: {acc*100:.2f}% | Time: {time.time() - start_time:.2f}s")
