@@ -7,7 +7,7 @@ import urllib.request
 from pathlib import Path
 
 CIFAR_URL = "https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz"
-CACHE_DIR = Path("data/resized")
+CACHE_DIR = Path("data/processed")
 RAW_DIR = Path("data/raw")
 
 # Download and extract dataset
@@ -56,7 +56,7 @@ def resize(batches, split, size=(224, 224)): # Ingest a list of batches (image_b
 
     for i, (images_batch, labels_batch) in enumerate(batches):
         # Create batch specific directories
-        cache_batch_file_path = os.path.join(CACHE_DIR, f"{split}_batch_{i}_{size[0]}x{size[1]}.npy")
+        cache_batch_file_path = os.path.join(CACHE_DIR, f"{split}_batch_{i}_{size[0]}x{size[1]}")
         
         resized_images_list = []
         for img in images_batch: 
@@ -72,7 +72,7 @@ def resize(batches, split, size=(224, 224)): # Ingest a list of batches (image_b
         processed_labels_batch = np.asarray(labels_batch)
 
         # --- NEW DIAGNOSTIC PRINTS ---
-        print(f"\n--- Debugging Batch {i} ---")
+        print(f"\n--- Batch {i} ---")
         print(f"Type of resized_images_array: {type(resized_images_array)}")
         print(f"Shape of resized_images_array: {resized_images_array.shape}")
         print(f"Dtype of resized_images_array: {resized_images_array.dtype}")

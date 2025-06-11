@@ -30,7 +30,7 @@ class DiskCachedDataset:
 
     # MLX Support
     def as_mlx(self):
-        for images, labels in self._load_batches():
+        for images, labels in self:
             yield mx.array(images), mx.array(labels)
 
     # PyTorch Support
@@ -73,12 +73,11 @@ class DiskCachedDataset:
                 tf.TensorSpec(shape=y_shape, dtype=tf.int32)
             )
         )
-
+    
 
 if __name__ == "__main__": 
-    cache_ds = DiskCachedDataset(split="train", size=(224, 224), cache_dir="data/processed", shuffle=False)
+    data = DiskCachedDataset(cache_dir="data/processed")
 
-    print("about to start loop")
-    for i, (x_batch, y_batch) in enumerate(cache_ds.as_torch()): 
-        print(f" --- Batch {i} Image Tensors: --- \n")
-        print(y_batch)
+    for i, (image_batch, label_batch) in enumerate(data.as_mlx()): 
+        print(f"\n --- Batch {i} Label Data --- ")
+        print(image_batch)
