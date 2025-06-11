@@ -47,9 +47,14 @@ class DiskCachedDataset:
             y = torch.from_numpy(data["labels"]).long()
             return x, y
 
-    def as_torch(self, batch_size=128, num_workers=0, shuffle=True):
+    def as_torch(self, num_workers=0, shuffle=False):
         dataset = self.TorchDiskDataset(self.batch_files)
-        return DataLoader(dataset, batch_size=None, shuffle=shuffle, num_workers=num_workers)
+        return DataLoader(
+            dataset,
+            batch_size=None,         # Cache data comes already batched - don't change
+            shuffle=shuffle,
+            num_workers=num_workers
+        )
 
     # TensorFlow Support
     def as_tf(self):
@@ -74,5 +79,6 @@ if __name__ == "__main__":
     cache_ds = DiskCachedDataset(split="train", size=(224, 224), cache_dir="data/processed", shuffle=False)
 
     print("about to start loop")
-    for x_batch, y_batch in cache_ds.as_mlx()(): 
-        pass
+    for i, (x_batch, y_batch) in enumerate(cache_ds.as_torch()): 
+        print(f" --- Batch {i} Image Tensors: --- \n")
+        print(y_batch)
