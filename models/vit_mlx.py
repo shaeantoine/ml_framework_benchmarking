@@ -11,9 +11,11 @@ class PatchEmbed(nn.Module):
         self.proj = nn.Conv2d(in_channels, embed_dim, kernel_size=patch_size, stride=patch_size)
 
     def __call__(self, x):
-        x = self.proj(x)  # (B, D, H/P, W/P)
-        x = x.reshape(x.shape[0], x.shape[1], -1)  # (B, D, N)
-        x = x.transpose(0, 2, 1)  # (B, N, D)
+        x = self.proj(x)  # (B, H/P, W/P, D)
+
+        B, H_patches, W_patches, D = x.shape
+        x = x.reshape(B, H_patches * W_patches, D)  # (B, N, D) where N = H_patches * W_patches
+        
         return x
 
 class MLP(nn.Module):
@@ -127,7 +129,7 @@ class ViT_MLX(nn.Module):
         else:
             x = mx.concatenate([cls_tokens, x], axis=1)
 
-        x = x + self.pos_embed.value
+        x = x + self.pos_embed
         x = self.dropout(x)
         x = self.blocks(x)
         x = self.norm(x)
