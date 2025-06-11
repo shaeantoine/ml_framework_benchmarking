@@ -91,14 +91,18 @@ class ViT_MLX(nn.Module):
         super().__init__()
         self.patch_embed = PatchEmbed(img_size, patch_size, in_channels, embed_dim)
         num_patches = self.patch_embed.num_patches
+        token_count = num_patches + 1 + int(use_distill_token)
 
-        self.cls_token = mx.zeros((1, 1, embed_dim))
+        # Class and distinalltion token
+        self.cls_token = nn.Parameter(mx.random.normal(shape=(1, 1, embed_dim)))
+        self.use_distill_token = use_distill_token
         if use_distill_token:
-            self.dist_token = mx.zeros((1, 1, embed_dim))
+            self.dist_token = nn.Parameter(mx.random.normal(shape=(1, 1, embed_dim)))
         else:
             self.dist_token = None
 
-        self.pos_embed = mx.zeros((1, num_patches + 1 + int(use_distill_token), embed_dim))
+        # Positional embedding
+        self.pos_embed = nn.Parameter(mx.random.normal(shape=(1, token_count, embed_dim)))
         self.dropout = nn.Dropout(dropout)
 
         self.blocks = nn.Sequential(
@@ -117,18 +121,18 @@ class ViT_MLX(nn.Module):
         x = self.patch_embed(x)
 
         cls_tokens = mx.broadcast_to(self.cls_token, (B, 1, x.shape[-1]))
-        if self.dist_token is not None:
+        if self.use_distill_token:
             dist_tokens = mx.broadcast_to(self.dist_token, (B, 1, x.shape[-1]))
             x = mx.concatenate([cls_tokens, dist_tokens, x], axis=1)
         else:
             x = mx.concatenate([cls_tokens, x], axis=1)
 
-        x = x + self.pos_embed
+        x = x + self.pos_embed.value
         x = self.dropout(x)
         x = self.blocks(x)
         x = self.norm(x)
 
-        if self.dist_token is not None:
+        if self.use_distill_token:
             cls_out = self.head(x[:, 0])
             dist_out = self.head_dist(x[:, 1])
             return (cls_out + dist_out) / 2
