@@ -2,6 +2,7 @@ import os
 import csv
 import json
 import time
+import pynvml
 import psutil
 import platform
 import threading
@@ -232,7 +233,7 @@ class ViTTelemetry:
     
     def _get_power_draw(self) -> float:
         # Get power draw in watts
-        if platform.system() == "Darwin":
+        if platform.system() == "Sequoia":
             try:
                 # Apple Silicon power monitoring
                 result = subprocess.check_output(['powermetrics', '-n', '1', '-s', 'cpu_power']).decode()
@@ -244,7 +245,6 @@ class ViTTelemetry:
                 pass
         elif TORCH_AVAILABLE and torch.cuda.is_available():
             try:
-                import pynvml
                 pynvml.nvmlInit()
                 handle = pynvml.nvmlDeviceGetHandleByIndex(0)
                 power = pynvml.nvmlDeviceGetPowerUsage(handle)
@@ -443,77 +443,3 @@ class ViTTelemetry:
         print(f"Duration: {stats.get('measurement_duration_sec', 0):.1f}s")
         print(f"{'='*60}\n")
 
-
-# Example usage functions for each framework
-def benchmark_pytorch_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int = 1):
-    # Benchmark PyTorch ViT model
-    model.train()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
-    criterion = torch.nn.CrossEntropyLoss()
-    
-    telemetry.start_background_monitoring()
-    
-    for epoch in range(epochs):
-        for batch_idx, (data, targets) in enumerate(data_loader):
-            batch_size = data.shape[0]
-            
-            # Forward pass
-            with telemetry.measure_operation("forward", batch_size):
-                outputs = model(data)
-                loss = criterion(outputs, targets)
-            
-            # Backward pass
-            with telemetry.measure_operation("backward", batch_size):
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-            
-            if batch_idx >= 10:  # Limit for demo
-                break
-    
-    telemetry.stop_background_monitoring()
-
-
-def benchmark_tensorflow_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int = 1):
-    # Benchmark TensorFlow ViT model
-    optimizer = tf.keras.optimizers.AdamW(learning_rate=1e-4)
-    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    
-    telemetry.start_background_monitoring()
-    
-    for epoch in range(epochs):
-        for batch_idx, (data, targets) in enumerate(data_loader):
-            batch_size = tf.shape(data)[0]
-            
-            with tf.GradientTape() as tape:
-                with telemetry.measure_operation("forward", batch_size.numpy()):
-                    predictions = model(data, training=True)
-                    loss = loss_fn(targets, predictions)
-            
-            with telemetry.measure_operation("backward", batch_size.numpy()):
-                gradients = tape.gradient(loss, model.trainable_variables)
-                optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-            
-            if batch_idx >= 10:  # Limit for demo
-                break
-    
-    telemetry.stop_background_monitoring()
-
-
-def benchmark_mlx_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int = 1):
-    # Benchmark MLX ViT model
-    telemetry.start_background_monitoring()
-    
-    for epoch in range(epochs):
-        for batch_idx, (data, targets) in enumerate(data_loader):
-            batch_size = data.shape[0]
-            
-            # Forward pass
-            with telemetry.measure_operation("forward", batch_size):
-                outputs = model(data)
-                # Add loss computation if available
-            
-            if batch_idx >= 10:  # Limit for demo
-                break
-    
-    telemetry.stop_background_monitoring()

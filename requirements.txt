@@ -28,6 +28,7 @@ optree==0.16.0
 packaging==25.0
 pillow==11.2.1
 protobuf==5.29.5
+psutil==7.0.0
 Pygments==2.19.1
 requests==2.32.4
 rich==14.0.0

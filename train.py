@@ -79,7 +79,7 @@ def print_telemetry_summary(telemetry, epoch, batch_idx, current_loss, current_a
 total_batches_per_epoch = sum(1 for _ in train_loader)
 print(f"Starting training: {num_epochs} epochs, {total_batches_per_epoch} batches per epoch")
 print(f"Total batches: {num_epochs * total_batches_per_epoch}")
-print("-" * 80)
+print("=" * 61)
 
 # Start background monitoring for continuous system metrics
 telemetry.start_background_monitoring(interval=0.5)  # Monitor every 500ms
