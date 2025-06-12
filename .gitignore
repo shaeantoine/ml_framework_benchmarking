@@ -197,3 +197,4 @@ cython_debug/
 .DS_store
 /data/raw
 /data/processed
+/checkpoints
