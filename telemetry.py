@@ -1,18 +1,17 @@
+import os
+import csv
+import json
 import time
 import psutil
-import json
-import csv
+import platform
 import threading
+import subprocess
 from datetime import datetime
-from collections import defaultdict, deque
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
+from collections import defaultdict, deque
 from typing import Dict, List, Optional, Any, Union
-import platform
-import subprocess
-import os
 
-# Framework-specific imports (with error handling)
 try:
     import torch
     TORCH_AVAILABLE = True
@@ -40,7 +39,7 @@ except ImportError:
 
 @dataclass
 class SystemInfo:
-    """System configuration information"""
+    # System configuration information
     platform: str
     cpu_model: str
     cpu_cores: int
@@ -55,7 +54,7 @@ class SystemInfo:
 
 @dataclass
 class PerformanceMetrics:
-    """Single measurement snapshot"""
+    # Single measurement snapshot
     timestamp: float
     forward_time_ms: float
     backward_time_ms: float
@@ -72,7 +71,7 @@ class PerformanceMetrics:
 
 
 class ViTTelemetry:
-    """Comprehensive telemetry system for ViT model performance analysis"""
+    # Comprehensive telemetry system for ViT model performance analysis
     
     def __init__(self, framework: str = 'auto'):
         self.framework = self._detect_framework(framework)
@@ -87,7 +86,7 @@ class ViTTelemetry:
         self._setup_framework_monitoring()
         
     def _detect_framework(self, framework: str) -> str:
-        """Auto-detect or validate framework"""
+        # Auto-detect or validate framework
         if framework != 'auto':
             return framework
             
@@ -103,7 +102,7 @@ class ViTTelemetry:
             return 'cpu'
     
     def _gather_system_info(self) -> SystemInfo:
-        """Gather comprehensive system information"""
+        # Gather comprehensive system information
         # Basic system info
         cpu_model = platform.processor() or "Unknown"
         if platform.system() == "Darwin":
@@ -132,7 +131,7 @@ class ViTTelemetry:
         )
     
     def _get_gpu_info(self) -> tuple:
-        """Get GPU model, memory, and unified memory status"""
+        # Get GPU model, memory, and unified memory status
         if platform.system() == "Darwin":
             # Apple Silicon detection
             try:
@@ -160,7 +159,7 @@ class ViTTelemetry:
         return "CPU", 0.0, False
     
     def _get_framework_version(self) -> str:
-        """Get framework version string"""
+        # Get framework version string
         if self.framework == 'pytorch' and TORCH_AVAILABLE:
             return torch.__version__
         elif self.framework == 'tensorflow' and TF_AVAILABLE:
@@ -170,7 +169,7 @@ class ViTTelemetry:
         return "unknown"
     
     def _get_device_type(self) -> str:
-        """Determine device type for current framework"""
+        # Determine device type for current framework
         if self.framework == 'mlx':
             return 'mlx'
         elif self.framework == 'pytorch' and TORCH_AVAILABLE:
@@ -184,7 +183,7 @@ class ViTTelemetry:
         return 'cpu'
     
     def _setup_framework_monitoring(self):
-        """Setup framework-specific monitoring"""
+        # Setup framework-specific monitoring
         if self.framework == 'pytorch' and TORCH_AVAILABLE:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -199,7 +198,7 @@ class ViTTelemetry:
                     pass
     
     def _get_memory_usage(self) -> tuple:
-        """Get current memory usage (used, available, peak)"""
+        # Get current memory usage (used, available, peak)
         if self.framework == 'pytorch' and TORCH_AVAILABLE and torch.cuda.is_available():
             used = torch.cuda.memory_allocated() / (1024**3)
             available = torch.cuda.get_device_properties(0).total_memory / (1024**3)
@@ -219,7 +218,7 @@ class ViTTelemetry:
             return used, available, used
     
     def _get_gpu_utilization(self) -> float:
-        """Get GPU utilization percentage"""
+        # Get GPU utilization percentage
         if self.framework == 'pytorch' and TORCH_AVAILABLE and torch.cuda.is_available():
             try:
                 import pynvml
@@ -232,7 +231,7 @@ class ViTTelemetry:
         return 0.0  # Not available for other frameworks
     
     def _get_power_draw(self) -> float:
-        """Get power draw in watts"""
+        # Get power draw in watts
         if platform.system() == "Darwin":
             try:
                 # Apple Silicon power monitoring
@@ -255,7 +254,7 @@ class ViTTelemetry:
         return 0.0
     
     def _get_temperature(self) -> float:
-        """Get device temperature in Celsius"""
+        # Get device temperature in Celsius
         if TORCH_AVAILABLE and torch.cuda.is_available():
             try:
                 import pynvml
@@ -269,7 +268,7 @@ class ViTTelemetry:
     
     @contextmanager
     def measure_operation(self, operation_name: str, batch_size: int, sequence_length: int = 196):
-        """Context manager for measuring a single operation"""
+        # Context manager for measuring a single operation
         start_time = time.perf_counter()
         start_memory = self._get_memory_usage()[0]
         
@@ -310,7 +309,7 @@ class ViTTelemetry:
         self.session_stats[operation_name].append(metrics)
     
     def start_background_monitoring(self, interval: float = 1.0):
-        """Start background system monitoring"""
+        # Start background system monitoring
         if self.monitoring_active:
             return
         
@@ -323,13 +322,13 @@ class ViTTelemetry:
         self.monitor_thread.start()
     
     def stop_background_monitoring(self):
-        """Stop background monitoring"""
+        # Stop background monitoring
         self.monitoring_active = False
         if self.monitor_thread:
             self.monitor_thread.join(timeout=2.0)
     
     def _background_monitor(self, interval: float):
-        """Background monitoring loop"""
+        # Background monitoring loop
         while self.monitoring_active:
             memory_used, memory_available, peak_memory = self._get_memory_usage()
             
@@ -347,7 +346,7 @@ class ViTTelemetry:
             time.sleep(interval)
     
     def get_summary_stats(self) -> Dict[str, Any]:
-        """Get comprehensive summary statistics"""
+        # Get comprehensive summary statistics
         if not self.metrics_history:
             return {}
         
@@ -384,7 +383,7 @@ class ViTTelemetry:
         }
     
     def save_results(self, filename: str, format: str = 'json'):
-        """Save telemetry results to file"""
+        # Save telemetry results to file
         data = {
             'system_info': asdict(self.system_info),
             'summary_stats': self.get_summary_stats(),
@@ -404,7 +403,7 @@ class ViTTelemetry:
                         writer.writerow(asdict(metrics))
     
     def print_summary(self):
-        """Print a formatted summary of results"""
+        # Print a formatted summary of results
         stats = self.get_summary_stats()
         
         print(f"\n{'='*60}")
@@ -447,7 +446,7 @@ class ViTTelemetry:
 
 # Example usage functions for each framework
 def benchmark_pytorch_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int = 1):
-    """Benchmark PyTorch ViT model"""
+    # Benchmark PyTorch ViT model
     model.train()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
     criterion = torch.nn.CrossEntropyLoss()
@@ -476,7 +475,7 @@ def benchmark_pytorch_vit(model, data_loader, telemetry: ViTTelemetry, epochs: i
 
 
 def benchmark_tensorflow_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int = 1):
-    """Benchmark TensorFlow ViT model"""
+    # Benchmark TensorFlow ViT model
     optimizer = tf.keras.optimizers.AdamW(learning_rate=1e-4)
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     
@@ -502,7 +501,7 @@ def benchmark_tensorflow_vit(model, data_loader, telemetry: ViTTelemetry, epochs
 
 
 def benchmark_mlx_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int = 1):
-    """Benchmark MLX ViT model"""
+    # Benchmark MLX ViT model
     telemetry.start_background_monitoring()
     
     for epoch in range(epochs):
@@ -518,22 +517,3 @@ def benchmark_mlx_vit(model, data_loader, telemetry: ViTTelemetry, epochs: int =
                 break
     
     telemetry.stop_background_monitoring()
-
-
-# Example usage
-if __name__ == "__main__":
-    # Initialize telemetry
-    telemetry = ViTTelemetry(framework='auto')
-    
-    # Example: Create dummy measurements
-    import random
-    for i in range(10):
-        with telemetry.measure_operation("forward", batch_size=32):
-            time.sleep(random.uniform(0.01, 0.05))  # Simulate work
-    
-    # Print results
-    telemetry.print_summary()
-    
-    # Save results
-    telemetry.save_results("vit_benchmark_results.json")
-    telemetry.save_results("vit_benchmark_results.csv", format='csv')

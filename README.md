@@ -10,7 +10,7 @@ I wanted to choose a model which was sophisticated, performs well on it's intend
 
 ## Dataset 
 
-I've selected [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) to train each of the architectures. It consists of 100 classess with 600 images each. These images are originally sized at 32x32 so I'll need to scale them to conform to the 224x224 shape DeiT-small ViT expects. 
+I've selected [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) to train each of the architectures. It consists of 100 classes (grouped into 20 super classes) with 600 images each. These images are originally sized at 32x32 so I'll need to scale them to conform to the 224x224 shape DeiT-small ViT expects. 
 
 ## Hardware and Frameworks 
 
